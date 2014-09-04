@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="animation-player.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "owner"},
+                "currentTimeDisplay": {"@": "currentTimeDisplay"},
+                "playButton": {"#": "playButton"},
+                "pauseButton": {"#": "pauseButton"},
+                "timelineDisplay": {"#": "timelineDisplay"},
+                "playbackRateInput": {"#": "playbackRateInput"}
+            }
+        },
+        "currentTimeDisplay": {
+            "prototype": "montage/ui/text.reel",
+            "properties": {
+                "element": {"#": "currentTimeDisplay"}
+            }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="owner" class="AnimationPlayer">
+        <div data-montage-id="currentTimeDisplay" class="currentTimeDisplay"></div>
+        <button data-montage-id="playButton" class="playButton">►</button>
+        <button data-montage-id="pauseButton" class="pauseButton">▐▐</button>
+        <input type="range" data-montage-id="timelineDisplay" class="timelineDisplay"></input>
+         Playback rate: <input type="number" value="1" data-montage-id="playbackRateInput" class="playbackRateInput"></input>
+    </div>
+</body>
+</html>
