@@ -14,7 +14,10 @@ var Time = exports.Time = Montage.specialize(null, {
 
     clockMillis: {
         value: function () {
-            return window.performance.now();
+            if (window.performance && window.performance.now) {
+                return window.performance.now();
+            }
+            return Date.now();
         }
     },
 

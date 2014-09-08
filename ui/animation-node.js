@@ -86,14 +86,14 @@ var AnimationNode = exports.AnimationNode = Montage.specialize({
     },
 
     _getAdjustedAnimationTime: {
-        value: function(animationTime) {
+        value: function (animationTime) {
             var startOffset,
                 duration = this.duration;
 
-            if ((this.timing.iterationStart === 0) || (duration === 0)) {
-                startOffset = 0;
-            } else {
+            if (this.timing.iterationStart && duration) {
                 startOffset = this.timing.iterationStart * duration;
+            } else {
+                startOffset = 0;
             }
             if (this.timing.playbackRate < 0) {
                 return (animationTime - this._activeDuration) * this.timing.playbackRate + startOffset;

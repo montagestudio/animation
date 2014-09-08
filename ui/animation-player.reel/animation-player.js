@@ -36,7 +36,7 @@ var documentTimeline = Montage.specialize(null, {
 
 });
 
-documentTimeline._startTime = window.performance.now();
+documentTimeline._startTime = Time.clockMillis();
 
 /**
  * @class AnimationPlayer

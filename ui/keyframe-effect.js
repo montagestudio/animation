@@ -2,7 +2,8 @@ var Montage = require("montage").Montage,
     TimingFunction = require("ui/timing-functions").TimingFunction,
     presetTimingFunctions = require("ui/timing-functions").PresetTimingFunctions,
     Type = require("ui/type").Type,
-    Interpolation = require("ui/interpolation").Interpolation;
+    Interpolation = require("ui/interpolation").Interpolation,
+    Properties = require("ui/properties").Properties;
 
 var PropertySpecificKeyframe = exports.PropertySpecificKeyframe = Montage.specialize({
 
@@ -110,115 +111,6 @@ var KeyframeEffect = exports.KeyframeEffect = Montage.specialize({
         }
     },
 
-    _shorthandToLonghand: {
-        value: {
-            background: [
-                "backgroundImage",
-                "backgroundPosition",
-                "backgroundSize",
-                "backgroundRepeat",
-                "backgroundAttachment",
-                "backgroundOrigin",
-                "backgroundClip",
-                "backgroundColor"
-            ],
-            border: [
-                "borderTopColor",
-                "borderTopStyle",
-                "borderTopWidth",
-                "borderRightColor",
-                "borderRightStyle",
-                "borderRightWidth",
-                "borderBottomColor",
-                "borderBottomStyle",
-                "borderBottomWidth",
-                "borderLeftColor",
-                "borderLeftStyle",
-                "borderLeftWidth"
-            ],
-            borderBottom: [
-                "borderBottomWidth",
-                "borderBottomStyle",
-                "borderBottomColor"
-            ],
-            borderColor: [
-                "borderTopColor",
-                "borderRightColor",
-                "borderBottomColor",
-                "borderLeftColor"
-            ],
-            borderLeft: [
-                "borderLeftWidth",
-                "borderLeftStyle",
-                "borderLeftColor"
-            ],
-            borderRadius: [
-                "borderTopLeftRadius",
-                "borderTopRightRadius",
-                "borderBottomRightRadius",
-                "borderBottomLeftRadius"
-            ],
-            borderRight: [
-                "borderRightWidth",
-                "borderRightStyle",
-                "borderRightColor"
-            ],
-            borderTop: [
-                "borderTopWidth",
-                "borderTopStyle",
-                "borderTopColor"
-            ],
-            borderWidth: [
-                "borderTopWidth",
-                "borderRightWidth",
-                "borderBottomWidth",
-                "borderLeftWidth"
-            ],
-            font: [
-                "fontFamily",
-                "fontSize",
-                "fontStyle",
-                "fontVariant",
-                "fontWeight",
-                "lineHeight"
-            ],
-            margin: [
-                "marginTop",
-                "marginRight",
-                "marginBottom",
-                "marginLeft"
-            ],
-            outline: [
-                "outlineColor",
-                "outlineStyle",
-                "outlineWidth"
-            ],
-            padding: [
-                "paddingTop",
-                "paddingRight",
-                "paddingBottom",
-                "paddingLeft"
-            ]
-        }
-    },
-
-    _expandShorthand: {
-        value: function (property, value, result) {
-            var longProperties,
-                longProperty,
-                longhandValue,
-                i;
-
-            KeyframeEffect._shorthandExpanderElem.style[property] = value;
-            longProperties = this._shorthandToLonghand[property];
-            for (i in longProperties) {
-                longProperty = longProperties[i];
-                longhandValue = KeyframeEffect._shorthandExpanderElem.style[longProperty];
-                result[longProperty] = longhandValue;
-            }
-        }
-    },
-
     _normalizeKeyframeDictionary: {
         value: function (properties) {
             var animationProperties = [],
@@ -257,8 +149,8 @@ var KeyframeEffect = exports.KeyframeEffect = Montage.specialize({
                 } else {
                     value = "";
                 }
-                if (property in KeyframeEffect._shorthandToLonghand) {
-                    KeyframeEffect._expandShorthand(property, value, result);
+                if (property in Properties.shorthandToLonghand) {
+                    Properties.expandShorthand(property, value, result);
                 } else {
                     result[property] = value;
                 }
@@ -617,7 +509,7 @@ var BlendedCompositableValue = function(startValue, endValue, fraction) {
 BlendedCompositableValue.prototype = createObject(
     CompositableValue.prototype, {
       compositeOnto: function(property, underlyingValue) {
-        return Interpolation.interpolate(property,
+        return Type.interpolate(property,
             this.startValue.compositeOnto(property, underlyingValue),
             this.endValue.compositeOnto(property, underlyingValue),
             this.fraction);
@@ -837,24 +729,9 @@ var ensureTargetCSSInitialised = function(target) {
   target.style._webAnimationsStyleInitialised = true;
 };
 
-function prefixProperty(property) {
-  switch (property) {
-    case 'transform':
-      return features.transformProperty;
-    case 'transformOrigin':
-      return features.transformOriginProperty;
-    case 'perspective':
-      return features.perspectiveProperty;
-    case 'perspectiveOrigin':
-      return features.perspectiveOriginProperty;
-    default:
-      return property;
-  }
-}
-
 var setValue = function(target, property, value) {
   ensureTargetInitialised(property, target);
-  property = prefixProperty(property);
+  property = Properties.prefixProperty(property);
   if (propertyIsSVGAttrib(property, target)) {
     target.actuals[property] = value;
   } else {
@@ -864,7 +741,7 @@ var setValue = function(target, property, value) {
 
 var clearValue = function(target, property) {
   ensureTargetInitialised(property, target);
-  property = prefixProperty(property);
+  property = Properties.prefixProperty(property);
   if (propertyIsSVGAttrib(property, target)) {
     target.actuals[property] = null;
   } else {
@@ -889,7 +766,7 @@ var fromCssValue = function(property, value) {
 
 var getValue = function(target, property) {
   ensureTargetInitialised(property, target);
-  property = prefixProperty(property);
+  property = Properties.prefixProperty(property);
   if (propertyIsSVGAttrib(property, target)) {
     return target.actuals[property];
   } else {
@@ -989,6 +866,3 @@ var toCssValue = function(property, value, svgMode) {
   }
   return Type.getType(property).toCssValue(value, svgMode);
 };
-
-// Dummy element for _expandShorthand
-KeyframeEffect._shorthandExpanderElem = document.createElement('div');
