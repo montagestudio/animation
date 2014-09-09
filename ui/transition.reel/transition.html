@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="transition.css">
+    <script type="text/montage-serialization">
+    {
+        "owner": {
+            "properties": {
+                "element": {"#": "owner"},
+                "mainSlot": {"@": "mainSlot"},
+                "transitionSlot": {"@": "transitionSlot"},
+                "mainAnimationPlayer": {"@": "mainAnimationPlayer"},
+                "transitionAnimationPlayer": {"@": "transitionAnimationPlayer"}
+            }
+        },
+        "mainSlot": {
+            "prototype": "montage/ui/slot.reel",
+            "properties": {
+                "element": {"#": "mainSlot"}
+            }
+        },
+        "transitionSlot": {
+            "prototype": "montage/ui/slot.reel",
+            "properties": {
+                "element": {"#": "transitionSlot"}
+            }
+        },
+        "mainAnimationPlayer": {
+            "prototype": "ui/animation-player.reel",
+            "properties": {
+                "element": {"#": "dummy1"}
+            }
+        },
+        "transitionAnimationPlayer": {
+            "prototype": "ui/animation-player.reel",
+            "properties": {
+                "element": {"#": "dummy2"}
+            }
+        }
+    }
+    </script>
+</head>
+<body>
+    <div data-montage-id="owner" class="substitution">
+        <div data-montage-id="transitionSlot" class="transition-transition-slot"></div>
+        <div data-montage-id="mainSlot" class="transition-main-slot"></div>
+        <div data-montage-id="dummy1" style="display: none"></div>
+        <div data-montage-id="dummy2" style="display: none"></div>
+    </div>
+</body>
+</html>

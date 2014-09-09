@@ -25,6 +25,170 @@ var Montage = require("montage").Montage,
     VerticalAlignType = require("ui/types/vertical-align-type").VerticalAlignType,
     WidthType = require("ui/types/width-type").WidthType;
 
+
+    var transformType = {
+        add: function (base, delta) { return base.concat(delta); },
+        interpolate: function (from, to, f) {
+            var out = [],
+                i;
+
+            for (i = 0; i < Math.min(from.length, to.length); i++) {
+                if (from[i].t !== to[i].t || isMatrix(from[i])) {
+                    break;
+                }
+                out.push(interpTransformValue(from[i], to[i], f));
+            }
+
+            if (i < Math.min(from.length, to.length) ||
+                    from.some(isMatrix) || to.some(isMatrix)) {
+                if (from.decompositionPair !== to) {
+                    from.decompositionPair = to;
+                    from.decomposition = decomposeMatrix(convertToMatrix(from.slice(i)));
+                }
+                if (to.decompositionPair !== from) {
+                    to.decompositionPair = from;
+                    to.decomposition = decomposeMatrix(convertToMatrix(to.slice(i)));
+                }
+                out.push(interpolateDecomposedTransformsWithMatrices(
+                        from.decomposition, to.decomposition, f));
+                return out;
+            }
+
+            for (; i < from.length; i++) {
+                out.push(interpTransformValue(from[i], {t: null, d: null}, f));
+            }
+            for (; i < to.length; i++) {
+                out.push(interpTransformValue({t: null, d: null}, to[i], f));
+            }
+            return out;
+        },
+        toCssValue: function (value, svgMode) {
+            var out = "",
+                unit,
+                values,
+                i;
+
+            for (i = 0; i < value.length; i++) {
+                switch (value[i].t) {
+                    case "rotate":
+                    case "rotateX":
+                    case "rotateY":
+                    case "rotateZ":
+                    case "skewX":
+                    case "skewY":
+                        unit = svgMode ? "" : "deg";
+                        out += value[i].t + "(" + value[i].d + unit + ") ";
+                        break;
+                    case "skew":
+                        unit = svgMode ? "" : "deg";
+                        out += value[i].t + "(" + value[i].d[0] + unit;
+                        if (value[i].d[1] === 0) {
+                            out += ") ";
+                        } else {
+                            out += ", " + value[i].d[1] + unit + ") ";
+                        }
+                        break;
+                    case "rotate3d":
+                        unit = svgMode ? "" : "deg";
+                        out += value[i].t + "(" + value[i].d[0] + ", " + value[i].d[1] +
+                                ", " + value[i].d[2] + ", " + value[i].d[3] + unit + ") ";
+                        break;
+                    case "translateX":
+                    case "translateY":
+                    case "translateZ":
+                    case "perspective":
+                        out += value[i].t + "(" + PercentLengthType.toCssValue(value[i].d[0]) +
+                                ") ";
+                        break;
+                    case "translate":
+                        if (svgMode) {
+                            if (value[i].d[1] === undefined) {
+                                out += value[i].t + "(" + value[i].d[0].px + ") ";
+                            } else {
+                                out += (
+                                        value[i].t + "(" + value[i].d[0].px + ", " +
+                                        value[i].d[1].px + ") ");
+                            }
+                            break;
+                        }
+                        if (value[i].d[1] === undefined) {
+                            out += value[i].t + "(" + PercentLengthType.toCssValue(value[i].d[0]) +
+                                    ") ";
+                        } else {
+                            out += value[i].t + "(" + PercentLengthType.toCssValue(value[i].d[0]) +
+                                    ", " + PercentLengthType.toCssValue(value[i].d[1]) + ") ";
+                        }
+                        break;
+                    case "translate3d":
+                        values = value[i].d.map(PercentLengthType.toCssValue);
+                        out += value[i].t + "(" + values[0] + ", " + values[1] +
+                                ", " + values[2] + ") ";
+                        break;
+                    case "scale":
+                        if (value[i].d[0] === value[i].d[1]) {
+                            out += value[i].t + "(" + value[i].d[0] + ") ";
+                        } else {
+                            out += value[i].t + "(" + value[i].d[0] + ", " + value[i].d[1] +
+                                    ") ";
+                        }
+                        break;
+                    case "scaleX":
+                    case "scaleY":
+                    case "scaleZ":
+                        out += value[i].t + "(" + value[i].d[0] + ") ";
+                        break;
+                    case "scale3d":
+                        out += value[i].t + "(" + value[i].d[0] + ", " +
+                                value[i].d[1] + ", " + value[i].d[2] + ") ";
+                        break;
+                    case "matrix":
+                    case "matrix3d":
+                        out += value[i].t + "(" + value[i].d.map(n).join(", ") + ") ";
+                        break;
+                }
+            }
+            return out.substring(0, out.length - 1);
+        },
+        fromCssValue: function (value) {
+            var result,
+                reSpec,
+                r, i;
+
+            if (value === undefined) {
+                return undefined;
+            }
+            result = [];
+            while (value.length > 0) {
+                for (i = 0; i < transformREs.length; i++) {
+                    reSpec = transformREs[i];
+                    r = reSpec[0].exec(value);
+                    if (r) {
+                        result.push({t: reSpec[2], d: reSpec[1](r)});
+                        value = value.substring(r[0].length);
+                        break;
+                    }
+                }
+                if ((r === undefined) || (r === null)) {
+                    return result;
+                }
+            }
+            return result;
+        }
+    };
+
+    var BlurType = {
+        add: function (base, delta) { return base + delta; },
+        interpolate: function (from, to, f) {
+            return Interpolation.interp(from, to, f);
+        },
+        toCssValue: function (value, svgMode) {
+            return "blur(" + value + "px)";
+        },
+        fromCssValue: function (value) {
+            return Number(value.substr(5,value.length - 8));
+        }
+    };
+
 var Type = exports.Type = Montage.specialize(null, {
 
     getType: {
@@ -44,7 +208,7 @@ var Type = exports.Type = Montage.specialize(null, {
             if (f === 1) {
                 return to;
             }
-            return this.getType(property).interpolate(from, to, f);
+            return Type.getType(property).interpolate(from, to, f);
         }
     },
 
@@ -116,7 +280,8 @@ var Type = exports.Type = Montage.specialize(null, {
             wordSpacing: WordSpacingType,
             x: PercentLengthType,
             y: PercentLengthType,
-            zIndex: ZIndexType
+            zIndex: ZIndexType,
+            "-webkit-filter": BlurType
         }
     }
 
@@ -533,153 +698,3 @@ var Type = exports.Type = Montage.specialize(null, {
     function isMatrix(item) {
         return item.t[0] === "m";
     }
-
-    var transformType = {
-        add: function (base, delta) { return base.concat(delta); },
-        interpolate: function (from, to, f) {
-            var out = [],
-                i;
-
-            for (i = 0; i < Math.min(from.length, to.length); i++) {
-                if (from[i].t !== to[i].t || isMatrix(from[i])) {
-                    break;
-                }
-                out.push(interpTransformValue(from[i], to[i], f));
-            }
-
-            if (i < Math.min(from.length, to.length) ||
-                    from.some(isMatrix) || to.some(isMatrix)) {
-                if (from.decompositionPair !== to) {
-                    from.decompositionPair = to;
-                    from.decomposition = decomposeMatrix(convertToMatrix(from.slice(i)));
-                }
-                if (to.decompositionPair !== from) {
-                    to.decompositionPair = from;
-                    to.decomposition = decomposeMatrix(convertToMatrix(to.slice(i)));
-                }
-                out.push(interpolateDecomposedTransformsWithMatrices(
-                        from.decomposition, to.decomposition, f));
-                return out;
-            }
-
-            for (; i < from.length; i++) {
-                out.push(interpTransformValue(from[i], {t: null, d: null}, f));
-            }
-            for (; i < to.length; i++) {
-                out.push(interpTransformValue({t: null, d: null}, to[i], f));
-            }
-            return out;
-        },
-        toCssValue: function (value, svgMode) {
-            var out = "",
-                unit,
-                values,
-                i;
-
-            for (i = 0; i < value.length; i++) {
-                switch (value[i].t) {
-                    case "rotate":
-                    case "rotateX":
-                    case "rotateY":
-                    case "rotateZ":
-                    case "skewX":
-                    case "skewY":
-                        unit = svgMode ? "" : "deg";
-                        out += value[i].t + "(" + value[i].d + unit + ") ";
-                        break;
-                    case "skew":
-                        unit = svgMode ? "" : "deg";
-                        out += value[i].t + "(" + value[i].d[0] + unit;
-                        if (value[i].d[1] === 0) {
-                            out += ") ";
-                        } else {
-                            out += ", " + value[i].d[1] + unit + ") ";
-                        }
-                        break;
-                    case "rotate3d":
-                        unit = svgMode ? "" : "deg";
-                        out += value[i].t + "(" + value[i].d[0] + ", " + value[i].d[1] +
-                                ", " + value[i].d[2] + ", " + value[i].d[3] + unit + ") ";
-                        break;
-                    case "translateX":
-                    case "translateY":
-                    case "translateZ":
-                    case "perspective":
-                        out += value[i].t + "(" + PercentLengthType.toCssValue(value[i].d[0]) +
-                                ") ";
-                        break;
-                    case "translate":
-                        if (svgMode) {
-                            if (value[i].d[1] === undefined) {
-                                out += value[i].t + "(" + value[i].d[0].px + ") ";
-                            } else {
-                                out += (
-                                        value[i].t + "(" + value[i].d[0].px + ", " +
-                                        value[i].d[1].px + ") ");
-                            }
-                            break;
-                        }
-                        if (value[i].d[1] === undefined) {
-                            out += value[i].t + "(" + PercentLengthType.toCssValue(value[i].d[0]) +
-                                    ") ";
-                        } else {
-                            out += value[i].t + "(" + PercentLengthType.toCssValue(value[i].d[0]) +
-                                    ", " + PercentLengthType.toCssValue(value[i].d[1]) + ") ";
-                        }
-                        break;
-                    case "translate3d":
-                        values = value[i].d.map(PercentLengthType.toCssValue);
-                        out += value[i].t + "(" + values[0] + ", " + values[1] +
-                                ", " + values[2] + ") ";
-                        break;
-                    case "scale":
-                        if (value[i].d[0] === value[i].d[1]) {
-                            out += value[i].t + "(" + value[i].d[0] + ") ";
-                        } else {
-                            out += value[i].t + "(" + value[i].d[0] + ", " + value[i].d[1] +
-                                    ") ";
-                        }
-                        break;
-                    case "scaleX":
-                    case "scaleY":
-                    case "scaleZ":
-                        out += value[i].t + "(" + value[i].d[0] + ") ";
-                        break;
-                    case "scale3d":
-                        out += value[i].t + "(" + value[i].d[0] + ", " +
-                                value[i].d[1] + ", " + value[i].d[2] + ") ";
-                        break;
-                    case "matrix":
-                    case "matrix3d":
-                        out += value[i].t + "(" + value[i].d.map(n).join(", ") + ") ";
-                        break;
-                }
-            }
-            return out.substring(0, out.length - 1);
-        },
-        fromCssValue: function (value) {
-            var result,
-                reSpec,
-                r, i;
-
-            if (value === undefined) {
-                return undefined;
-            }
-            result = [];
-            while (value.length > 0) {
-                for (i = 0; i < transformREs.length; i++) {
-                    reSpec = transformREs[i];
-                    r = reSpec[0].exec(value);
-                    if (r) {
-                        result.push({t: reSpec[2], d: reSpec[1](r)});
-                        value = value.substring(r[0].length);
-                        break;
-                    }
-                }
-                if ((r === undefined) || (r === null)) {
-                    return result;
-                }
-            }
-            return result;
-        }
-    };

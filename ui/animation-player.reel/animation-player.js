@@ -44,6 +44,10 @@ documentTimeline._startTime = Time.clockMillis();
  */
 var AnimationPlayer = exports.AnimationPlayer = Component.specialize(/** @lends AnimationPlayer# */ {
 
+    hasTemplate: {
+        value: false
+    },
+
     // TODO: playState and events are missing implementation
 
     constructor: {
@@ -66,8 +70,21 @@ var AnimationPlayer = exports.AnimationPlayer = Component.specialize(/** @lends 
         value: 0
     },
 
-    source: {
+    _source: {
         value: null
+    },
+
+    source: {
+        get: function () {
+            return this._source;
+        },
+        set: function (value) {
+            this.currentTime = 0;
+            this.finish();
+            this.play();
+            this._source = value;
+            this.needsDraw = true;
+        }
     },
 
     timeline: {
@@ -279,7 +296,7 @@ var AnimationPlayer = exports.AnimationPlayer = Component.specialize(/** @lends 
         }
     },
 
-    enterDocument: {
+    /*enterDocument: {
         value: function (firstTime) {
             if (firstTime) {
                 var self = this;
@@ -295,15 +312,21 @@ var AnimationPlayer = exports.AnimationPlayer = Component.specialize(/** @lends 
                 });
             }
         }
-    },
+    },*/
 
     draw: {
         value: function () {
-            this.currentTimeDisplay.value = (this.currentTime / 1000).toFixed(2);
+            /*this.currentTimeDisplay.value = (this.currentTime / 1000).toFixed(2);
             this.timelineDisplay.value = this.currentTime;
-            this.timelineDisplay.max = this.source.endTime;
-            this.needsDraw = true;
-            compositor.applyAnimatedValues();
+            this.timelineDisplay.max = this.source.endTime;*/
+            if (this.source) {
+                this.source._iterationTime;
+                this.source._sample();
+                if (this.currentTime < this.source.endTime) {
+                    this.needsDraw = true;
+                }
+                compositor.needsFoo = true;
+            }
         }
     },
 
