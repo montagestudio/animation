@@ -33,11 +33,11 @@ var MinLengthType = exports.MinLengthType = PercentLengthType.specialize(null, {
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if (MinLengthType._isKeyword(value)) {
                 return value;
             }
-            return PercentLengthType.toCssValue(value, svgMode);
+            return PercentLengthType.toCssValue(value);
         }
     },
 

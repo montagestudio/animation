@@ -42,11 +42,11 @@ var VerticalAlignType = exports.VerticalAlignType = PercentLengthType.specialize
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if (VerticalAlignType._isKeyword(value)) {
                 return value;
             }
-            return PercentLengthType.toCssValue(value, svgMode);
+            return PercentLengthType.toCssValue(value);
         }
     },
 

@@ -24,11 +24,11 @@ var ZIndexType = exports.ZIndexType = NumberType.specialize(null, {
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if (value === "auto") {
                 return value;
             }
-            return NumberType.toCssValue(value, svgMode);
+            return NumberType.toCssValue(value);
         }
     },
 

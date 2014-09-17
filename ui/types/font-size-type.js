@@ -23,11 +23,11 @@ var FontSizeType = exports.FontSizeType = PercentLengthType.specialize(null, {
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if ((value === "smaller") || (value === "larger")) {
                 return value;
             }
-            return PercentLengthType.toCssValue(value, svgMode);
+            return PercentLengthType.toCssValue(value);
         }
     },
 

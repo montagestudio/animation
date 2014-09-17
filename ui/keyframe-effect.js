@@ -586,25 +586,15 @@ CompositedPropertyMap.prototype = {
       for (; i < valuesToComposite.length; i++) {
         baseValue = valuesToComposite[i].compositeOnto(property, baseValue);
       }
-      var isSvgMode = propertyIsSVGAttrib(property, this.target);
-      setValue(this.target, property, toCssValue(property, baseValue,
-          isSvgMode));
+      setValue(this.target, property, toCssValue(property, baseValue));
       this.properties[property] = [];
     }
   }
 };
 
-var propertyIsSVGAttrib = function(property, target) {
-  return target.namespaceURI === 'http://www.w3.org/2000/svg' &&
-      property in svgProperties;
-};
 
 var ensureTargetInitialised = function(property, target) {
-  if (propertyIsSVGAttrib(property, target)) {
-    ensureTargetSVGInitialised(property, target);
-  } else {
     ensureTargetCSSInitialised(target);
-  }
 };
 
 var patchInlineStyleForAnimation = function(style) {
@@ -671,49 +661,6 @@ var copyInlineStyle = function(sourceStyle, destinationStyle) {
   }
 };
 
-var ensureTargetSVGInitialised = function(property, target) {
-  if (!isDefinedAndNotNull(target._actuals)) {
-    target._actuals = {};
-    target._bases = {};
-    target.actuals = {};
-    target._getAttribute = target.getAttribute;
-    target._setAttribute = target.setAttribute;
-    target.getAttribute = function(name) {
-      if (isDefinedAndNotNull(target._bases[name])) {
-        return target._bases[name];
-      }
-      return target._getAttribute(name);
-    };
-    target.setAttribute = function(name, value) {
-      if (isDefinedAndNotNull(target._actuals[name])) {
-        target._bases[name] = value;
-      } else {
-        target._setAttribute(name, value);
-      }
-    };
-  }
-  if (!isDefinedAndNotNull(target._actuals[property])) {
-    var baseVal = target.getAttribute(property);
-    target._actuals[property] = 0;
-    target._bases[property] = baseVal;
-
-    Object.defineProperty(target.actuals, property, configureDescriptor({
-      set: function(value) {
-        if (value === null) {
-          target._actuals[property] = target._bases[property];
-          target._setAttribute(property, target._bases[property]);
-        } else {
-          target._actuals[property] = value;
-          target._setAttribute(property, value);
-        }
-      },
-      get: function() {
-        return target._actuals[property];
-      }
-    }));
-  }
-};
-
 var ensureTargetCSSInitialised = function(target) {
   if (target.style._webAnimationsStyleInitialised) {
     return;
@@ -732,21 +679,13 @@ var ensureTargetCSSInitialised = function(target) {
 var setValue = function(target, property, value) {
   ensureTargetInitialised(property, target);
   property = Properties.prefixProperty(property);
-  if (propertyIsSVGAttrib(property, target)) {
-    target.actuals[property] = value;
-  } else {
-    target.style._setAnimatedProperty(property, value);
-  }
+  target.style._setAnimatedProperty(property, value);
 };
 
 var clearValue = function(target, property) {
   ensureTargetInitialised(property, target);
   property = Properties.prefixProperty(property);
-  if (propertyIsSVGAttrib(property, target)) {
-    target.actuals[property] = null;
-  } else {
-    target.style._clearAnimatedProperty(property);
-  }
+  target.style._clearAnimatedProperty(property);
 };
 
 var fromCssValue = function(property, value) {
@@ -767,11 +706,7 @@ var fromCssValue = function(property, value) {
 var getValue = function(target, property) {
   ensureTargetInitialised(property, target);
   property = Properties.prefixProperty(property);
-  if (propertyIsSVGAttrib(property, target)) {
-    return target.actuals[property];
-  } else {
-    return getComputedStyle(target)[property];
-  }
+  return getComputedStyle(target)[property];
 };
 
 var cssNeutralValue = {};
@@ -860,9 +795,9 @@ var propertyValueAliases = {
   zIndex: { initial: 'auto' }
 };
 
-var toCssValue = function(property, value, svgMode) {
+var toCssValue = function(property, value) {
   if (value === 'inherit') {
     return value;
   }
-  return Type.getType(property).toCssValue(value, svgMode);
+  return Type.getType(property).toCssValue(value);
 };

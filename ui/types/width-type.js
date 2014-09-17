@@ -41,11 +41,11 @@ var WidthType = exports.WidthType = PercentLengthType.specialize(null, {
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if (WidthType._isKeyword(value)) {
                 return value;
             }
-            return PercentLengthType.toCssValue(value, svgMode);
+            return PercentLengthType.toCssValue(value);
         }
     },
 

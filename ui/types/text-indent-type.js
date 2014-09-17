@@ -23,11 +23,11 @@ var TextIndentType = exports.TextIndentType = PercentLengthType.specialize(null,
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if ((value === "each-line") || (value === "hanging")) {
                 return value;
             }
-            return PercentLengthType.toCssValue(value, svgMode);
+            return PercentLengthType.toCssValue(value);
         }
     },
 

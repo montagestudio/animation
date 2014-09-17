@@ -24,7 +24,7 @@ var FontWeightType = exports.FontWeightType = Montage.specialize(null, {
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if ((value === "lighter") || (value === "bolder")) {
                 return value;
             }

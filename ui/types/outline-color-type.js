@@ -23,11 +23,11 @@ var OutlineColorType = exports.OutlineColorType = ColorType.specialize(null, {
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if (value === "invert") {
                 return value;
             }
-            return ColorType.toCssValue(value, svgMode);
+            return ColorType.toCssValue(value);
         }
     },
 

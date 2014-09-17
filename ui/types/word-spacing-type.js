@@ -23,11 +23,11 @@ var WordSpacingType = exports.WordSpacingType = PercentLengthType.specialize(nul
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if (value === "normal") {
                 return value;
             }
-            return PercentLengthType.toCssValue(value, svgMode);
+            return PercentLengthType.toCssValue(value);
         }
     },
 

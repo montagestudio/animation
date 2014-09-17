@@ -23,11 +23,11 @@ var LetterSpacingType = exports.LetterSpacingType = PercentLengthType.specialize
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if (value === "normal") {
                 return value;
             }
-            return PercentLengthType.toCssValue(value, svgMode);
+            return PercentLengthType.toCssValue(value);
         }
     },
 

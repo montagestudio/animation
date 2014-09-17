@@ -23,11 +23,11 @@ var PerspectiveType = exports.PerspectiveType = PercentLengthType.specialize(nul
     },
 
     toCssValue: {
-        value: function (value, svgMode) {
+        value: function (value) {
             if (value === "none") {
                 return value;
             }
-            return PercentLengthType.toCssValue(value, svgMode);
+            return PercentLengthType.toCssValue(value);
         }
     },
 

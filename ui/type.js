@@ -62,7 +62,7 @@ var Montage = require("montage").Montage,
             }
             return out;
         },
-        toCssValue: function (value, svgMode) {
+        toCssValue: function (value) {
             var out = "",
                 unit,
                 values,
@@ -76,11 +76,11 @@ var Montage = require("montage").Montage,
                     case "rotateZ":
                     case "skewX":
                     case "skewY":
-                        unit = svgMode ? "" : "deg";
+                        unit = "deg";
                         out += value[i].t + "(" + value[i].d + unit + ") ";
                         break;
                     case "skew":
-                        unit = svgMode ? "" : "deg";
+                        unit = "deg";
                         out += value[i].t + "(" + value[i].d[0] + unit;
                         if (value[i].d[1] === 0) {
                             out += ") ";
@@ -89,7 +89,7 @@ var Montage = require("montage").Montage,
                         }
                         break;
                     case "rotate3d":
-                        unit = svgMode ? "" : "deg";
+                        unit = "deg";
                         out += value[i].t + "(" + value[i].d[0] + ", " + value[i].d[1] +
                                 ", " + value[i].d[2] + ", " + value[i].d[3] + unit + ") ";
                         break;
@@ -101,16 +101,6 @@ var Montage = require("montage").Montage,
                                 ") ";
                         break;
                     case "translate":
-                        if (svgMode) {
-                            if (value[i].d[1] === undefined) {
-                                out += value[i].t + "(" + value[i].d[0].px + ") ";
-                            } else {
-                                out += (
-                                        value[i].t + "(" + value[i].d[0].px + ", " +
-                                        value[i].d[1].px + ") ");
-                            }
-                            break;
-                        }
                         if (value[i].d[1] === undefined) {
                             out += value[i].t + "(" + PercentLengthType.toCssValue(value[i].d[0]) +
                                     ") ";
@@ -181,7 +171,7 @@ var Montage = require("montage").Montage,
         interpolate: function (from, to, f) {
             return Interpolation.interp(from, to, f);
         },
-        toCssValue: function (value, svgMode) {
+        toCssValue: function (value) {
             return "blur(" + value + "px)";
         },
         fromCssValue: function (value) {
