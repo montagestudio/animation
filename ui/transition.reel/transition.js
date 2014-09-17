@@ -1,7 +1,8 @@
 var Montage = require("montage").Montage,
     Component = require("montage/ui/component").Component,
     Promise = require("montage/core/promise").Promise,
-    logger = require("montage/core/logger").logger("substitution");
+    logger = require("montage/core/logger").logger("substitution"),
+    Compositor = require("ui/compositor").Compositor;
 
 exports.Transition = Component.specialize({
 
@@ -311,9 +312,9 @@ exports.Transition = Component.specialize({
 
     draw: {
         value: function () {
-            if (typeof compositor !== "undefined" && compositor.needsFoo) {
-                compositor.applyAnimatedValues();
-                compositor.needsFoo = false;
+            if (Compositor.needsFoo) {
+                Compositor.applyAnimatedValues();
+                Compositor.needsFoo = false;
             }
             this.needsDraw = true;
         }

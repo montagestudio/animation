@@ -4,7 +4,8 @@
  */
 var Component = require("montage/ui/component").Component,
     Montage = require("montage").Montage,
-    Time = require("ui/time").Time;
+    Time = require("ui/time").Time,
+    Compositor = require("ui/compositor").Compositor;
 
 
 var documentTimeline = Montage.specialize(null, {
@@ -325,7 +326,7 @@ var AnimationPlayer = exports.AnimationPlayer = Component.specialize(/** @lends 
                 if (this.currentTime < this.source.endTime) {
                     this.needsDraw = true;
                 }
-                compositor.needsFoo = true;
+                Compositor.needsFoo = true;
             }
         }
     },
