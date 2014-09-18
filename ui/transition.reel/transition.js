@@ -15,6 +15,7 @@ exports.Transition = Component.specialize({
         value: function Transition() {
             this._switchElements = Object.create(null);
             this._switchComponentTreeLoaded = Object.create(null);
+            this._switchComponents = {};
         }
     },
 
@@ -138,6 +139,12 @@ exports.Transition = Component.specialize({
 
     _setSlotContent: {
         value: function (slot, content) {
+            // TODO: review this
+            if (this._switchElements[content].component) {
+                this._switchComponents[content] = this._switchElements[content].component;
+            } else {
+                this._switchElements[content] = this._switchComponents[content].element;
+            }
             if (content === this._drawnSwitchValue) {
                 slot.content = this.element.children[0];
             } else {
@@ -183,7 +190,7 @@ exports.Transition = Component.specialize({
         }
     },
 
-    contentDidChange: {
+    /*contentDidChange: {
         value: function(newContent, oldContent) {
             this.super();
             if (this._drawnSwitchValue) {
@@ -191,7 +198,7 @@ exports.Transition = Component.specialize({
             }
             this._drawnSwitchValue = this._switchValue;
         }
-    },
+    },*/
 
     _loadSwitchComponentTree: {
         value: function(value) {
